@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { api } from '../api.js';
+// import { api } from '../api.js';
 
 export default function CourseList({ selectedId, onCourseClick }) {
+  return <p className="muted">No courses are being offered right now.</p>;
+
   const [state, setState] = useState({ status: 'loading', courses: [], error: null });
   const [retryKey, setRetryKey] = useState(0);
 

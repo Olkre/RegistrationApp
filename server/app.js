@@ -3,8 +3,8 @@ const Router = require('@koa/router');
 const bodyParser = require('koa-bodyparser');
 const { errorHandler, badRequest, unauthenticated } = require('./errors');
 const auth = require('./auth');
-const registration = require('./registration');
-const { requireObjectBody, requireString, requireCourseId } = require('./validation');
+// const registration = require('./registration');
+// const { requireObjectBody, requireString, requireCourseId } = require('./validation');
 
 function createApp(db) {
   const app = new Koa();
