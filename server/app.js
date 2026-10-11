@@ -6,14 +6,24 @@ const auth = require('./auth');
 // const registration = require('./registration');
 // const { requireObjectBody, requireString, requireCourseId } = require('./validation');
 
+const cors = require('@koa/cors');
+
 function createApp(db) {
   const app = new Koa();
   const router = new Router({ prefix: '/api' });
   const requireAuth = auth.requireAuth(db);
 
+  // disabled auth for now
+  router.get('/courses', async (ctx) => {
+    const courses = db.prepare('SELECT * FROM courses').all();
+    ctx.body = { courses };
+  });
 
-
-
+  // fix cors bug from client
+  app.use(cors({
+     origin: 'http://localhost:5173',
+     credentials: true,
+   }));
 
   app.use(errorHandler);
   app.use(

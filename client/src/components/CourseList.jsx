@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-// import { api } from '../api.js';
+import { getCourses } from '../api.js';
 
 export default function CourseList({ selectedId, onCourseClick }) {
-  return <p className="muted">No courses are being offered right now.</p>;
+  //return <p className="muted">No courses are being offered right now.</p>;
 
   const [state, setState] = useState({ status: 'loading', courses: [], error: null });
   const [retryKey, setRetryKey] = useState(0);
@@ -11,8 +11,7 @@ export default function CourseList({ selectedId, onCourseClick }) {
   useEffect(() => {
     const controller = new AbortController();
     setState({ status: 'loading', courses: [], error: null });
-    api
-      .get('/courses', { signal: controller.signal })
+    getCourses()
       .then((data) => setState({ status: 'ready', courses: data.courses, error: null }))
       .catch((err) => {
         if (controller.signal.aborted) return;
