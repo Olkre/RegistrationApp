@@ -14,3 +14,13 @@ export async function getCourses() {
 
   return data;
 }
+
+export async function getCourseDetails(courseId) {
+  const response = await fetch(`http://localhost:3001/api/course/${courseId}`);
+  if (!response.ok) {
+    throw new Error(`Couldn't fetch course details (${response.status})`);
+  }
+
+  const data = await response.json();
+  return data.course;
+}
