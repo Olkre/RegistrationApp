@@ -1,8 +1,28 @@
 // initial data endpoint receiver
 
+const server_url = 'http://localhost:3001/api';
+
+export async function serverLogin(email, password) {
+  const response = await fetch(`${server_url}/login`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(data?.error?.message ?? `Login failed (${response.status})`);
+  }
+
+  return data.user;
+}
+
+
 export async function getCourses() {
   console.log('fetching courses...');
-  const response = await fetch(`http://localhost:3001/api/courses`);
+  const response = await fetch(`${server_url}/courses`);
 
   console.log('response:', response);
   if (!response.ok) {
@@ -16,7 +36,7 @@ export async function getCourses() {
 }
 
 export async function getCourseDetails(courseId) {
-  const response = await fetch(`http://localhost:3001/api/course/${courseId}`);
+  const response = await fetch(`${server_url}/course/${courseId}`);
   if (!response.ok) {
     throw new Error(`Couldn't fetch course details (${response.status})`);
   }

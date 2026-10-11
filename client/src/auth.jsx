@@ -1,16 +1,17 @@
 import { createContext, useContext, useState } from 'react';
-
+import { serverLogin } from './api';
 const AuthContext = createContext(null);
 
-const sampleUser = { name: "Alex" };
+const sampleUser = { name: "Alex", email: "demo@t.com" };
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(sampleUser);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
 
-  const login = () => {
-    setUser(sampleUser);
+  const login = async (email, password) => {
+    const loggedInUser = await serverLogin(email, password);
+    setUser(loggedInUser);
   };
 
   const logout = () => {

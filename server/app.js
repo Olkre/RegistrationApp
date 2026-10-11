@@ -13,6 +13,26 @@ function createApp(db) {
   const router = new Router({ prefix: '/api' });
   const requireAuth = auth.requireAuth(db);
 
+  // auth routes
+  // POST  /api/login   Log in with { "email", "password" }; sets the session cookie | 200 { user }
+  router.post('/login', async (ctx) => {
+    const { email, password } = ctx.request.body;
+
+    const user = await auth.verifyCredentials(db, email, password);
+
+    console.log("trying to sign in ", email);
+
+    if (!user) {
+      throw unauthenticated('unauthenticated', 'wrong credentials');
+    }
+
+    const token = auth.createSession(db, user.id);
+    auth.setSessionCookie(ctx, token);
+
+    ctx.status = 200;
+    ctx.body = { user };
+  });
+
   // disabled auth for now
   router.get('/courses', async (ctx) => {
     const courses = db.prepare('SELECT * FROM courses').all();
