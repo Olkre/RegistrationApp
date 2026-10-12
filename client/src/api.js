@@ -19,6 +19,30 @@ export async function serverLogin(email, password) {
   return data.user;
 }
 
+export async function serverLogout() {
+  const response = await fetch(`${server_url}/logout`, {
+    credentials: 'include',
+    method: 'POST'
+  });
+}
+
+export async function serverCurrentUser() {
+  const response = await fetch(`${server_url}/me`, {
+    credentials: 'include',
+  });
+
+  if (response.status === 401) return null;
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(data?.error?.message ?? `Request failed (${response.status})`);
+  }
+
+  return data.user;
+}
+
+
 
 export async function getCourses() {
   console.log('fetching courses...');

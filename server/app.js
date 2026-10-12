@@ -33,6 +33,37 @@ function createApp(db) {
     ctx.body = { user };
   });
 
+  router.post('/login', async (ctx) => {
+    const body = ctx.request.body;
+    const user = await auth.verifyCredentials(db, body.email.trim(), body.password);
+
+    if (!user) {
+      throw unauthenticated('UNAUTHENTICATED', 'Email or password is incorrect.');
+    }
+
+    const token = auth.createSession(db, user.id);
+    auth.setSessionCookie(ctx, token);
+
+    ctx.body = { user };
+  });
+
+  router.post('/logout', async (ctx) => {
+    const token = ctx.cookies.get(auth.SESSION_COOKIE);
+
+    if (token) {
+      auth.destroySession(db, token);
+    }
+
+    auth.clearSessionCookie(ctx);
+    ctx.status = 204;
+  });
+
+  router.get('/me', requireAuth, async (ctx) => {
+    ctx.body = { user: ctx.state.user };
+  });
+
+
+
   // disabled auth for now
   router.get('/courses', async (ctx) => {
     const courses = db.prepare('SELECT * FROM courses').all();

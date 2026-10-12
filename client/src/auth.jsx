@@ -1,13 +1,17 @@
-import { createContext, useContext, useState } from 'react';
-import { serverLogin } from './api';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { serverLogin, serverCurrentUser, serverLogout } from './api';
 const AuthContext = createContext(null);
-
-const sampleUser = { name: "Alex", email: "demo@t.com" };
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    serverCurrentUser()
+      .then(setUser)
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  }, []);
 
   const login = async (email, password) => {
     const loggedInUser = await serverLogin(email, password);
@@ -15,6 +19,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    serverLogout();
     setUser(null);
   };
 
