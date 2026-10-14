@@ -86,6 +86,13 @@ function createApp(db) {
 
     console.log('enrolling in ' + courseId)
 
+    // check if exists
+    const course = db.prepare('SELECT * FROM courses WHERE id = ? ').get(courseId);
+    if(!course) {
+      console.log('course doesnt exist');
+
+    }
+
 
     // check if already enrolled
     const existingEnrollment = db.prepare('SELECT * FROM enrollments WHERE course_id = ? AND user_id = ?').get(courseId, userId);
@@ -117,8 +124,32 @@ function createApp(db) {
     }
 
 
-    // check conflicts with other courses
+    // check conflicts with other courses time wise
+    const timeConflicts = db
+      .prepare(` SELECT courses.id, courses.title, courses.start_time, courses.day_of_week
+        FROM courses
+        INNER JOIN enrollments ON enrollments.course_id = courses.id
+        WHERE enrollments.user_id = ? AND enrollments.status = ?
+        AND courses.day_of_week = ? AND courses.start_time = ?
+      `)
+      .all(userId, 'enrolled', course.day_of_week, course.start_time);
+      
+    if(timeConflicts) {
+      // throw error
+    }
+
+
     // check for open seats
+    const takenSeats = db
+      .prepare(
+        "SELECT COUNT(*) FROM enrollments WHERE course_id = ? AND status = ?"
+      )
+      .pluck()
+      .get(courseId, 'enrolled');
+
+    if (takenSeats >= course.capacity) {
+      throw new AppError(409, 'COURSE_FULL', 'This course is full.');
+    }
 
     db.prepare(
       "INSERT INTO enrollments (course_id, user_id, status) VALUES (?, ?, 'enrolled')"
