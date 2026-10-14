@@ -76,6 +76,7 @@ function createApp(db) {
       `)
       .all(userId, 'enrolled');
 
+    ctx.status = 201;
     ctx.body = { courses };
   });
 
@@ -100,15 +101,7 @@ function createApp(db) {
 
     const userId = ctx.state.user.id;
 
-    const result = db
-      .prepare('DELETE FROM enrollments WHERE course_id = ? AND user_id = ? AND status = ?')
-      .run(courseId, userId, 'enrolled');
-
-    if (result.changes === 0) {
-      ctx.status = 404;
-      ctx.body = { error: { code: 'NOT_ENROLLED', message: 'Course is not in your schedule.' } };
-      return;
-    }
+    registration.drop(db, userId, courseId);
 
     ctx.status = 204;
 
