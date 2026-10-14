@@ -63,8 +63,35 @@ function createApp(db) {
   });
 
 
+  router.get('/enrollments', requireAuth, async (ctx) => {
+    // get the user id
+    const userId = ctx.state.user.id;
 
-  // disabled auth for now
+    const courses = db.prepare('SELECT * FROM courses INNER JOIN enrollments on enrollments.course_id = courses.id WHERE enrollments.user_id = ?').all(userId);
+
+    ctx.body = { courses: courses }
+  });
+
+  // Register for { "courseId" }
+  router.post('/enrollments', requireAuth, async (ctx) => {
+    const courseId = ctx.params.id;
+    const userId = ctx.state.user.id;
+
+    const course = db.prepare('INSERT INTO enrollments (course_id, user_id) VALUES (?,?)').get(courseId, userId);
+
+  });
+
+  // Drop the { "courseId" }
+  router.delete('/enrollments/:id', requireAuth, async (ctx) => {
+    const courseId = ctx.params.id;
+    const userId = ctx.state.user.id;
+
+    const course = db.prepare('DELETE * FROM enrollments WHERE course_id = ? AND ').get(courseId, userId);
+
+    // handle errors and staff
+  });
+
+
   router.get('/courses', async (ctx) => {
     const courses = db.prepare('SELECT * FROM courses').all();
     ctx.body = { courses };

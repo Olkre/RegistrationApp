@@ -68,3 +68,18 @@ export async function getCourseDetails(courseId) {
   const data = await response.json();
   return data.course;
 }
+
+
+
+export async function getSchedule() {
+  const response = await fetch(`${server_url}/enrollments`, {
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Couldn't fetch courses (${response.status})`);
+  }
+  const data = await response.json();
+
+  return data.courses;
+}
