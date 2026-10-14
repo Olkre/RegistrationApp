@@ -4,7 +4,7 @@ const bodyParser = require('koa-bodyparser');
 const { AppError, errorHandler, badRequest, unauthenticated } = require('./errors');
 const auth = require('./auth');
 const registration = require('./registration');
-// const { requireObjectBody, requireString, requireCourseId } = require('./validation');
+const { requireObjectBody, requireString, requireCourseId } = require('./validation');
 
 const cors = require('@koa/cors');
 
@@ -16,6 +16,9 @@ function createApp(db) {
   // auth routes
   // POST  /api/login   Log in with { "email", "password" }; sets the session cookie | 200 { user }
   router.post('/login', async (ctx) => {
+    requireObjectBody(ctx.request.body);
+    requireString(email);
+
     const { email, password } = ctx.request.body;
 
     const user = await auth.verifyCredentials(db, email, password);
@@ -68,6 +71,8 @@ function createApp(db) {
 
   // Register for { "courseId" }
   router.post('/enrollments', requireAuth, async (ctx) => {
+    requireCourseId(ctx.request.body?.courseId);
+
     const courseId = Number(ctx.request.body?.courseId);
     const userId = ctx.state.user.id;
 
@@ -82,6 +87,8 @@ function createApp(db) {
 
   // Drop the { "courseId" }
   router.delete('/enrollments/:id', requireAuth, async (ctx) => {
+    requireCourseId(ctx.request.body?.courseId);
+
     const courseId = ctx.params.id;
     console.log("dropping " + courseId)
 
@@ -101,6 +108,8 @@ function createApp(db) {
 
   // show course details
   router.get('/courses/:id', requireAuth, async (ctx) => {
+    requireCourseId(ctx.request.body?.courseId);
+
     const id = ctx.params.id;
     const userId = ctx.state.user.id;
 
