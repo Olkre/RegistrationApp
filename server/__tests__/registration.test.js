@@ -85,6 +85,104 @@ describe('refused registrations', () => {
   });
 
 
+  test('unexisting course id', () => {
+    expectRefused(student, -12345, {
+      status: 404,
+      code: 'COURSE_NOT_FOUND',
+    });
+  });
+
+  test('invalid course id number', () => {
+    expectRefused(student, -12345, {
+      status: 404,
+      code: 'COURSE_NOT_FOUND',
+    });
+  });
+
+  test('already enrolled in current schedule', () => {
+    const course = addCourse('Algebra');
+    addEnrollment(student, course, 'enrolled');
+
+    expectRefused(student, course, {
+      status: 409,
+      code: 'ALREADY_ENROLLED',
+    });
+  });
+
+  test('already completed the course before', () => {
+    const course = addCourse('Algebra');
+    addEnrollment(student, course, 'completed');
+
+    expectRefused(student, course, {
+      status: 409,
+      code: 'ALREADY_COMPLETED',
+    });
+  });
+
+
+  test('missing a prerequisites', () => {
+    const firstPrerequisite = addCourse('Intro to Programming');
+    const secondPrerequisite = addCourse('Data Structures');
+    const advancedCourse = addCourse('Algorithms', {
+      prerequisites: [firstPrerequisite, secondPrerequisite],
+    });
+    addEnrollment(student, firstPrerequisite, 'completed');
+
+    expectRefused(student, advancedCourse, {
+      status: 409,
+      code: 'MISSING_PREREQUISITE',
+    });
+  });
+
+  test('prereq enrolled but not completed does not allow to take the course', () => {
+    const prerequisite = addCourse('Intro to Programming');
+    const advancedCourse = addCourse('Web Development', {
+      prerequisites: [prerequisite],
+    });
+    addEnrollment(student, prerequisite, 'enrolled');
+
+    expectRefused(student, advancedCourse, {
+      status: 409,
+      code: 'MISSING_PREREQUISITE',
+    });
+  });
+
+  test('day and time scheduling course conflicts', () => {
+    const existingCourse = addCourse('Algebra', { day: MON, start: '09:00' });
+    const conflictingCourse = addCourse('Biology', { day: MON, start: '09:00' });
+    addEnrollment(student, existingCourse, 'enrolled');
+
+    expectRefused(student, conflictingCourse, {
+      status: 409,
+      code: 'TIME_CONFLICT',
+    });
+  });
+
+  test('course gets full and refuses enrollment for the next person', () => {
+    const course = addCourse('Full Course', { capacity: 1 });
+    addEnrollment(other, course, 'enrolled');
+
+    expectRefused(student, course, {
+      status: 409,
+      code: 'COURSE_FULL',
+    });
+  });
+});
+
+describe('successful registrations', () => {
+
+  test('class filled -> someone drops -> allow enroll again', () => {
+    const course = addCourse('Seminar', { capacity: 1 });
+    addEnrollment(other, course, 'enrolled');
+
+    drop(db, other, course);
+    register(db, student, course);
+
+    expect(statusOf(other, course)).toBeUndefined();
+    expect(statusOf(student, course)).toBe('enrolled');
+  });
+
+
   test('a course at the same time on a different day', () => {
     const algebra = addCourse('Algebra', { day: MON, start: '09:00' });
     const biology = addCourse('Biology', { day: TUE, start: '09:00' });
@@ -95,4 +193,14 @@ describe('refused registrations', () => {
     expect(statusOf(student, biology)).toBe('enrolled');
   });
 
+
+  test('a course at the same day on a different time', () => {
+    const algebra = addCourse('Algebra', { day: MON, start: '09:00' });
+    const biology = addCourse('Biology', { day: MON, start: '12:00' });
+    register(db, student, algebra);
+
+    register(db, student, biology);
+
+    expect(statusOf(student, biology)).toBe('enrolled');
+  });
 });
