@@ -33,20 +33,6 @@ function createApp(db) {
     ctx.body = { user };
   });
 
-  router.post('/login', async (ctx) => {
-    const body = ctx.request.body;
-    const user = await auth.verifyCredentials(db, body.email.trim(), body.password);
-
-    if (!user) {
-      throw unauthenticated('UNAUTHENTICATED', 'Email or password is incorrect.');
-    }
-
-    const token = auth.createSession(db, user.id);
-    auth.setSessionCookie(ctx, token);
-
-    ctx.body = { user };
-  });
-
   router.post('/logout', async (ctx) => {
     const token = ctx.cookies.get(auth.SESSION_COOKIE);
 
@@ -109,15 +95,27 @@ function createApp(db) {
 
 
   router.get('/courses', requireAuth, async (ctx) => {
-    const courses = db.prepare('SELECT * FROM courses').all();
+    const courses = db.prepare('SELECT id, title FROM courses').all();
     ctx.body = { courses };
   });
 
+  // show course details
   router.get('/courses/:id', requireAuth, async (ctx) => {
     const id = ctx.params.id;
     const userId = ctx.state.user.id;
 
     const course = db.prepare('SELECT * FROM courses WHERE id = ?').get(id);
+
+    if(!course) {
+       if (result.changes === 0) {
+        throw new AppError(
+          500,
+          'COURSE_NOT_FOUND',
+          'Course is not found in the database.'
+        );
+      }
+    }
+
     console.log("course called")
     console.log(course)
 

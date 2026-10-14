@@ -87,10 +87,9 @@ function drop(db, userId, courseId) {
       .run(courseId, userId, 'enrolled');
 
     if (result.changes === 0) {
-      ctx.status = 404;
-      ctx.body = { error: { code: 'NOT_ENROLLED', message: 'Course is not in your schedule.' } };
-      return;
-    }
+        throw new AppError(404, 'NOT_ENROLLED', 'Course is not in your enrolled schedule, therefore cant be dropped.'
+    );
+  }
 }
 
 module.exports = { register, drop }
