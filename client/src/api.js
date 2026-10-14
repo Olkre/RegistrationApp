@@ -46,7 +46,9 @@ export async function serverCurrentUser() {
 
 export async function getCourses() {
   console.log('fetching courses...');
-  const response = await fetch(`${server_url}/courses`);
+  const response = await fetch(`${server_url}/courses`, {
+    credentials: 'include',
+  });
 
   console.log('response:', response);
   if (!response.ok) {
@@ -60,7 +62,9 @@ export async function getCourses() {
 }
 
 export async function getCourseDetails(courseId) {
-  const response = await fetch(`${server_url}/course/${courseId}`);
+  const response = await fetch(`${server_url}/course/${courseId}`, {
+    credentials: 'include',
+  });
   if (!response.ok) {
     throw new Error(`Couldn't fetch course details (${response.status})`);
   }

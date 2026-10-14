@@ -77,6 +77,32 @@ function createApp(db) {
     const courseId = Number(ctx.request.body?.courseId);
     const userId = ctx.state.user.id;
 
+    console.log('enrolling in ' + courseId)
+
+
+    // check if already enrolled
+    const existingEnrollment = db.prepare('SELECT * FROM enrollments WHERE course_id = ? AND user_id = ?').get(courseId, userId);
+    if (existingEnrollment) {
+      throw badRequest('ALREADY_ENROLLED', 'You are already enrolled in this course.');
+    }
+
+    // check prerequisites
+    // gets prereq - use pluck() to return an array
+    const prereqs = db.prepare('SELECT prerequisite_id FROM prerequisites WHERE course_id = ?').pluck().all(courseId)
+    console.log("prereqs")
+    console.log(prereqs)
+    if (prereqs) {
+      // get completed
+      const completed = db.prepare('SELECT course_id FROM enrollments WHERE user_id = ? AND status = ?').pluck().all(userId, 'completed');
+      // compare the two
+      console.log("completed")
+      console.log(completed)
+    }
+
+
+    // check conflicts with other courses
+    // check for open seats
+
     db.prepare(
       "INSERT INTO enrollments (course_id, user_id, status) VALUES (?, ?, 'enrolled')"
     ).run(courseId, userId);
@@ -108,16 +134,42 @@ function createApp(db) {
   });
 
 
-  router.get('/courses', async (ctx) => {
+  router.get('/courses', requireAuth, async (ctx) => {
     const courses = db.prepare('SELECT * FROM courses').all();
     ctx.body = { courses };
   });
 
-  router.get('/course/:id', async (ctx) => {
+  router.get('/course/:id', requireAuth, async (ctx) => {
     const id = ctx.params.id;
+    const userId = ctx.state.user.id;
+
     const course = db.prepare('SELECT * FROM courses WHERE id = ?').get(id);
     console.log("course called")
     console.log(course)
+
+    // load empty seats
+    course.takenSeats = db
+      .prepare('SELECT Count(*) FROM enrollments WHERE course_id = ? AND status = ?')
+      .pluck()
+      .get(id, 'enrolled');
+    // current user status
+    const currentEnrollment = db.prepare('SELECT status FROM enrollments WHERE course_id = ? AND user_id = ?').get(id, userId);
+
+    if (currentEnrollment) {
+      course.currentEnrollment = currentEnrollment;
+    }
+
+    // prereqs
+    course.prerequisites = db
+      .prepare(`
+          SELECT courses.title FROM prerequisites
+          JOIN courses ON courses.id = prerequisites.prerequisite_id
+          WHERE prerequisites.course_id = ?
+      `)
+      .pluck()
+      .all(id);
+
+
     ctx.body = { course };
   });
 

@@ -50,7 +50,15 @@ export default function CourseDetails({ courseId, clickKey, dataKey, onChange })
       <p>day_of_week: {state.course.day_of_week}</p>
       <p>start_time: {state.course.start_time}</p>
       <p>capacity: {state.course.capacity}</p>
-      <span onClick={register}>Register</span>
+      <p>taken by: {state.course.takenSeats}</p>
+      <p>Current enrollment: {state.course.currentEnrollment?.status ?? 'Not enrolled'}</p>
+      <p>prerequisites</p>
+      <ul className='list-disc'>
+        {state.course.prerequisites.map((prerequisite) => (
+          <li key={prerequisite}>{prerequisite}</li>
+        ))}
+      </ul>
+      <span onClick={register} className='text-blue-500'>Register</span>
     </article>
   );
 }
