@@ -90,14 +90,18 @@ function createApp(db) {
     const course = db.prepare('SELECT * FROM courses WHERE id = ? ').get(courseId);
     if(!course) {
       console.log('course doesnt exist');
-
+      throw new AppError(404, 'COURSE_NOT_FOUND', 'Course doesnt exist in the database');
     }
 
 
-    // check if already enrolled
+    // check if already enrolled or completed
     const existingEnrollment = db.prepare('SELECT * FROM enrollments WHERE course_id = ? AND user_id = ?').get(courseId, userId);
     if (existingEnrollment) {
-      throw badRequest('ALREADY_ENROLLED', 'You are already enrolled in this course.');
+      if(existingEnrollment.status === "enrolled") {
+        throw new AppError(409, 'ALREADY_ENROLLED', 'You  already have registered this course.');
+      } else if (existingEnrollment.status === "completed") {
+        throw new AppError(409, 'ALREADY_COMPLETED', 'You  already have completed this course.');
+      }
     }
 
     // check prerequisites
@@ -114,9 +118,7 @@ function createApp(db) {
 
       for (const prereqId of prereqs) {
         if (!completed.includes(prereqId)) {
-          throw new AppError(
-              409,
-              'MISSING_PREREQUISITE',
+          throw new AppError(409, 'MISSING_PREREQUISITE',
               'Complete all prereqs courses please. Missing at least the course with id ' + prereqId
             );
         }
@@ -133,9 +135,12 @@ function createApp(db) {
         AND courses.day_of_week = ? AND courses.start_time = ?
       `)
       .all(userId, 'enrolled', course.day_of_week, course.start_time);
-      
-    if(timeConflicts) {
-      // throw error
+
+    if (timeConflicts.length > 0) {
+      const conflict = timeConflicts[0];
+      throw new AppError(409, 'TIME_CONFLICT',
+        `${course.title} meets at the same time as ${conflict.title} on day ${conflict.day_of_week} at ${conflict.start_time}`
+      );
     }
 
 
@@ -168,8 +173,8 @@ function createApp(db) {
     const userId = ctx.state.user.id;
 
     const result = db
-      .prepare('DELETE FROM enrollments WHERE course_id = ? AND user_id = ?')
-      .run(courseId, userId);
+      .prepare('DELETE FROM enrollments WHERE course_id = ? AND user_id = ? AND status = ?')
+      .run(courseId, userId, 'enrolled');
 
     if (result.changes === 0) {
       ctx.status = 404;
