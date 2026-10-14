@@ -1,14 +1,10 @@
 import { useEffect, useState } from 'react';
-import { dropCourse, getSchedule } from '../api.js';
+import { getSchedule } from '../api.js';
+import { DayNumberAsText } from './CourseDetails.jsx';
 
-
-export default function Schedule({ dataKey, onChange }) {
+export default function Schedule({ dataKey }) {
   const [state, setState] = useState({ status: 'loading', courses: [], error: null });
   const [retryKey, setRetryKey] = useState(0);
-
-  const handleDrop = (courseId) => {
-    dropCourse(courseId);
-  };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -20,7 +16,7 @@ export default function Schedule({ dataKey, onChange }) {
         setState({ status: 'error', courses: [], error: err.message });
       });
     return () => controller.abort();
-  }, [retryKey]);
+  }, [retryKey, dataKey]);
 
   if (state.status === 'loading') {
     return (
@@ -49,8 +45,7 @@ export default function Schedule({ dataKey, onChange }) {
     <ul className="course-list">
       {state.courses.map((course) => (
         <li key={course.id}>
-          {course.title} - {course.start_time} - {course.day_of_week}
-          <button onClick={() => handleDrop(course.id)}>Drop</button>
+          {course.title} - {course.start_time} - <DayNumberAsText day={course.day_of_week} />
         </li>
       ))}
     </ul>

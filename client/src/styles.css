@@ -75,6 +75,11 @@ input:focus-visible {
   color: var(--muted);
 }
 
+.label {
+  color: var(--muted);
+  font-weight: 600;
+}
+
 .error,
 .success,
 .notice {

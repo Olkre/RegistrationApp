@@ -67,9 +67,18 @@ function createApp(db) {
     // get the user id
     const userId = ctx.state.user.id;
 
-    const courses = db.prepare('SELECT * FROM courses INNER JOIN enrollments on enrollments.course_id = courses.id WHERE enrollments.user_id = ?').all(userId);
+    const courses = db
+      .prepare(`
+        SELECT courses.*, enrollments.status
+        FROM courses
+        INNER JOIN enrollments ON enrollments.course_id = courses.id
+        WHERE enrollments.user_id = ?
+          AND enrollments.status = ?
+        ORDER BY courses.day_of_week, courses.start_time
+      `)
+      .all(userId, 'enrolled');
 
-    ctx.body = { courses: courses }
+    ctx.body = { courses };
   });
 
   // Register for { "courseId" }

@@ -67,7 +67,7 @@ export default function RegistrationPage() {
 
         <section className="panel" aria-labelledby="schedule-heading">
           <h2 id="schedule-heading">My schedule</h2>
-          <Schedule dataKey={dataKey} onChange={handleRegistrationChange} />
+          <Schedule dataKey={dataKey} />
         </section>
       </main>
     </div>
