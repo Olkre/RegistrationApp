@@ -74,21 +74,37 @@ function createApp(db) {
 
   // Register for { "courseId" }
   router.post('/enrollments', requireAuth, async (ctx) => {
-    const courseId = ctx.params.id;
+    const courseId = Number(ctx.request.body?.courseId);
     const userId = ctx.state.user.id;
 
-    const course = db.prepare('INSERT INTO enrollments (course_id, user_id) VALUES (?,?)').get(courseId, userId);
+    db.prepare(
+      "INSERT INTO enrollments (course_id, user_id, status) VALUES (?, ?, 'enrolled')"
+    ).run(courseId, userId);
 
+    ctx.body = { enrollment: { courseId, userId, status: 'enrolled' } };
   });
+
+
 
   // Drop the { "courseId" }
   router.delete('/enrollments/:id', requireAuth, async (ctx) => {
     const courseId = ctx.params.id;
+    console.log("dropping " + courseId)
+
     const userId = ctx.state.user.id;
 
-    const course = db.prepare('DELETE * FROM enrollments WHERE course_id = ? AND ').get(courseId, userId);
+    const result = db
+      .prepare('DELETE FROM enrollments WHERE course_id = ? AND user_id = ?')
+      .run(courseId, userId);
 
-    // handle errors and staff
+    if (result.changes === 0) {
+      ctx.status = 404;
+      ctx.body = { error: { code: 'NOT_ENROLLED', message: 'Course is not in your schedule.' } };
+      return;
+    }
+
+    ctx.status = 204;
+
   });
 
 

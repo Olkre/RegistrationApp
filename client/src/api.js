@@ -69,8 +69,6 @@ export async function getCourseDetails(courseId) {
   return data.course;
 }
 
-
-
 export async function getSchedule() {
   const response = await fetch(`${server_url}/enrollments`, {
     credentials: 'include',
@@ -82,4 +80,36 @@ export async function getSchedule() {
   const data = await response.json();
 
   return data.courses;
+}
+
+export async function registerCourse(courseId) {
+  console.log("registering to " + courseId);
+  const response = await fetch(`${server_url}/enrollments`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ courseId: courseId }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Couldn't fetch courses (${response.status})`);
+  }
+  const data = await response.json();
+
+  return;
+}
+
+export async function dropCourse(courseId) {
+  console.log("dropping to " + courseId);
+
+  const response = await fetch(`${server_url}/enrollments/${courseId}`, {
+    credentials: 'include',
+    method: 'DELETE'
+  });
+
+  if (!response.ok) {
+    throw new Error(`Couldn't drop courses (${response.status})`);
+  }
+
+  return;
 }

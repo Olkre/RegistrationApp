@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
-import { getSchedule } from '../api.js';
+import { dropCourse, getSchedule } from '../api.js';
 
 
 export default function Schedule({ dataKey, onChange }) {
   const [state, setState] = useState({ status: 'loading', courses: [], error: null });
   const [retryKey, setRetryKey] = useState(0);
+
+  const handleDrop = (courseId) => {
+    dropCourse(courseId);
+  };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -45,7 +49,8 @@ export default function Schedule({ dataKey, onChange }) {
     <ul className="course-list">
       {state.courses.map((course) => (
         <li key={course.id}>
-            {course.title} - {course.start_time} - {course.day_of_week}
+          {course.title} - {course.start_time} - {course.day_of_week}
+          <button onClick={() => handleDrop(course.id)}>Drop</button>
         </li>
       ))}
     </ul>

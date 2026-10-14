@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
-import { getCourseDetails } from '../api.js';
+import { getCourseDetails, registerCourse } from '../api.js';
 
 // component setup mirrored from course list
 export default function CourseDetails({ courseId, clickKey, dataKey, onChange }) {
   const [retryKey, setRetryKey] = useState(0);
   const [state, setState] = useState({ status: 'loading', course: null, error: null });
+
+  const register = () => {
+    registerCourse(courseId);
+    // alert("course registered");
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -45,6 +50,7 @@ export default function CourseDetails({ courseId, clickKey, dataKey, onChange })
       <p>day_of_week: {state.course.day_of_week}</p>
       <p>start_time: {state.course.start_time}</p>
       <p>capacity: {state.course.capacity}</p>
+      <span onClick={register}>Register</span>
     </article>
   );
 }
