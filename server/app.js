@@ -1,7 +1,7 @@
 const Koa = require('koa');
 const Router = require('@koa/router');
 const bodyParser = require('koa-bodyparser');
-const { errorHandler, badRequest, unauthenticated } = require('./errors');
+const { AppError, errorHandler, badRequest, unauthenticated } = require('./errors');
 const auth = require('./auth');
 // const registration = require('./registration');
 // const { requireObjectBody, requireString, requireCourseId } = require('./validation');
@@ -68,12 +68,10 @@ function createApp(db) {
     const userId = ctx.state.user.id;
 
     const courses = db
-      .prepare(`
-        SELECT courses.*, enrollments.status
+      .prepare(` SELECT courses.id, courses.title, courses.start_time, courses.day_of_week
         FROM courses
         INNER JOIN enrollments ON enrollments.course_id = courses.id
-        WHERE enrollments.user_id = ?
-          AND enrollments.status = ?
+        WHERE enrollments.user_id = ? AND enrollments.status = ?
         ORDER BY courses.day_of_week, courses.start_time
       `)
       .all(userId, 'enrolled');
@@ -98,14 +96,24 @@ function createApp(db) {
     // check prerequisites
     // gets prereq - use pluck() to return an array
     const prereqs = db.prepare('SELECT prerequisite_id FROM prerequisites WHERE course_id = ?').pluck().all(courseId)
-    console.log("prereqs")
-    console.log(prereqs)
+    // console.log("prereqs")
+    // console.log(prereqs)
+
+    // verify if prereqs are in completed assignments
     if (prereqs) {
       // get completed
       const completed = db.prepare('SELECT course_id FROM enrollments WHERE user_id = ? AND status = ?').pluck().all(userId, 'completed');
       // compare the two
-      console.log("completed")
-      console.log(completed)
+
+      for (const prereqId of prereqs) {
+        if (!completed.includes(prereqId)) {
+          throw new AppError(
+              409,
+              'MISSING_PREREQUISITE',
+              'Complete all prereqs courses please. Missing at least the course with id ' + prereqId
+            );
+        }
+      }
     }
 
 
@@ -148,7 +156,7 @@ function createApp(db) {
     ctx.body = { courses };
   });
 
-  router.get('/course/:id', requireAuth, async (ctx) => {
+  router.get('/courses/:id', requireAuth, async (ctx) => {
     const id = ctx.params.id;
     const userId = ctx.state.user.id;
 

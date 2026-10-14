@@ -86,7 +86,7 @@ export default function CourseDetails({ courseId, clickKey, dataKey, onChange })
           type="button"
           onClick={() => handleEnrollmentAction(enrollmentStatus === 'enrolled' ? dropCourse : registerCourse)}
           disabled={actionState.pending}
-          className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+          className="primary"
         >
           {actionState.pending ? 'Please wait…' : enrollmentStatus === 'enrolled' ? 'Drop course' : 'Register'}
         </button>

@@ -62,7 +62,7 @@ export async function getCourses() {
 }
 
 export async function getCourseDetails(courseId) {
-  const response = await fetch(`${server_url}/course/${courseId}`, {
+  const response = await fetch(`${server_url}/courses/${courseId}`, {
     credentials: 'include',
   });
   if (!response.ok) {
@@ -95,10 +95,11 @@ export async function registerCourse(courseId) {
     body: JSON.stringify({ courseId: courseId }),
   });
 
-  if (!response.ok) {
-    throw new Error(`Couldn't fetch courses (${response.status})`);
-  }
   const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data?.error?.message ?? `Registration failed (${response.status})`);
+  }
 
   return;
 }

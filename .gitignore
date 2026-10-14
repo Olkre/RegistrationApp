@@ -1,3 +1,4 @@
 node_modules
+server/data/registration.db
 server/data/registration.db-shm
 server/data/registration.db-wal

@@ -38,14 +38,17 @@ export default function Schedule({ dataKey }) {
     );
   }
   if (state.courses.length === 0) {
-    return <p className="muted">No courses are being offered right now.</p>;
+    return <p className="muted">You arent enrolled in anything yet.</p>;
   }
 
   return (
-    <ul className="course-list">
+    <ul className="course-list space-y-3">
       {state.courses.map((course) => (
-        <li key={course.id}>
-          {course.title} - {course.start_time} - <DayNumberAsText day={course.day_of_week} />
+        <li key={course.id} className="flex flex-col gap-1">
+          <p className="font-bold">{course.title}</p>
+          <p className="text-sm">
+            {course.start_time}, <DayNumberAsText day={course.day_of_week} />
+          </p>
         </li>
       ))}
     </ul>
