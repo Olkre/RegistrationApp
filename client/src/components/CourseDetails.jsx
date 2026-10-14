@@ -19,6 +19,11 @@ export default function CourseDetails({ courseId, clickKey, dataKey, onChange })
     setActionState({ pending: false, error: null });
   }
 
+  // makes sure to reset the errors 
+  useEffect(() => {
+    setActionState({ pending: false, error: null });
+  }, [courseId]);
+
   useEffect(() => {
     const controller = new AbortController();
     setState({ status: 'loading', course: null, error: null });
@@ -91,6 +96,10 @@ export default function CourseDetails({ courseId, clickKey, dataKey, onChange })
           {actionState.pending ? 'Please wait…' : enrollmentStatus === 'enrolled' ? 'Drop course' : 'Register'}
         </button>
       )}
+
+      {(enrollmentStatus === 'completed') && (
+        <p className="text-green-700">You have completed this course already so you cant add or drop it again.</p>
+      )} 
     </article>
   );
 }

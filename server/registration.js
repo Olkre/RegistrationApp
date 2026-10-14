@@ -35,7 +35,7 @@ function register(db, userId, courseId) {
 
             for (const prereqId of prereqs) {
                 if (!completed.includes(prereqId)) {
-                    const conflictingCourseName = db.prepare('SELECT title FROM courses WHERE id = ?').get(prereqId);
+                    const conflictingCourseName = db.prepare('SELECT title FROM courses WHERE id = ?').pluck().get(prereqId);
 
                     throw new AppError(409, 'MISSING_PREREQUISITE',
                         'Complete all prereqs courses please. Missing at least the course  ' + conflictingCourseName
